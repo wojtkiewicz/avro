@@ -17,11 +17,6 @@
  */
 package org.apache.avro.io;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.util.BitSet;
-
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
 import org.apache.avro.io.parsing.JsonGrammarGenerator;
@@ -33,6 +28,11 @@ import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.util.DefaultPrettyPrinter;
 import org.codehaus.jackson.util.MinimalPrettyPrinter;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.util.BitSet;
 
 /** An {@link Encoder} for Avro's JSON data encoding. 
  * </p>
@@ -290,12 +290,21 @@ public class JsonEncoder extends ParsingEncoder implements Parser.ActionHandler 
     isEmpty.clear(depth());
   }
 
+  public static boolean isNullableSingle(final Symbol.Alternative top) {
+    return top.size() == 2 && ("null".equals(top.getLabel(0)) || "null".equals(top.getLabel(1)));
+  }
+  
+  public static String getNullableSingle(final Symbol.Alternative top) {
+    final String label = top.getLabel(0);
+    return "null".equals(label) ? top.getLabel(1) : label;
+  }
+
   @Override
   public void writeIndex(int unionIndex) throws IOException {
     parser.advance(Symbol.UNION);
     Symbol.Alternative top = (Symbol.Alternative) parser.popSymbol();
     Symbol symbol = top.getSymbol(unionIndex);
-    if (symbol != Symbol.NULL) {
+    if (symbol != Symbol.NULL && !isNullableSingle(top) ) {
       out.writeStartObject();
       out.writeFieldName(top.getLabel(unionIndex));
       parser.pushSymbol(Symbol.UNION_END);
