@@ -26,8 +26,8 @@ import java.nio.ByteBuffer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import org.apache.avro.AvroFieldNotFound;
 import org.apache.avro.AvroRuntimeException;
+import org.apache.avro.AvroTypeException;
 import org.apache.avro.Conversion;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
@@ -516,7 +516,7 @@ public class GenericDatumReader<D> implements DatumReader<D> {
     try {
       int idx = in.readIndex();
       return read(old, expected.getTypes().get(idx), in);
-    } catch (AvroFieldNotFound ex) {
+    } catch (AvroTypeException ex) {
       if (expected.getTypes().get(0).getType() == Schema.Type.NULL) {
         return null;
       }

@@ -47,8 +47,8 @@ public class TestJsonDecoderOptionalFields {
         String json = "{" +
                 "\"username\":\"mike\"," +
                 "\"message\":\"hello\"," +
-                "\"__timestamp\":{\"long\":1234}," +
-                "\"__metadata\":{\"map\":{}}" +
+                "\"__timestamp\":1234," +
+                "\"__metadata\":{\"foo\":\"bar\"}" +
                 "}";
 
         // when
@@ -64,7 +64,7 @@ public class TestJsonDecoderOptionalFields {
         String json = "{\n" +
                 "    \"username\": \"mike\",\n" +
                 "    \"message\": \"hello\"," +
-                "    \"__timestamp\": {\"long\": 1234}\n" +
+                "    \"__timestamp\": 1234\n" +
                 "}";
 
         // when
@@ -74,7 +74,7 @@ public class TestJsonDecoderOptionalFields {
         assertEquals("{" +
                 "\"username\":\"mike\"," +
                 "\"message\":\"hello\"," +
-                "\"__timestamp\":{\"long\":1234}," +
+                "\"__timestamp\":1234," +
                 "\"__metadata\":null" +
                 "}", new String(converter.convertToJson(avro, SCHEMA)));
     }
@@ -85,7 +85,7 @@ public class TestJsonDecoderOptionalFields {
         String json = "{\n" +
                 "    \"username\": \"mike\",\n" +
                 "    \"message\": \"hello\"," +
-                "    \"__metadata\": {\"map\": {\"yes\": \"123\"}}\n" +
+                "    \"__metadata\": {\"yes\": \"123\"}\n" +
                 "}";
 
         // when
@@ -96,7 +96,7 @@ public class TestJsonDecoderOptionalFields {
                 "\"username\":\"mike\"," +
                 "\"message\":\"hello\"," +
                 "\"__timestamp\":null," +
-                "\"__metadata\":{\"map\":{\"yes\":\"123\"}}" +
+                "\"__metadata\":{\"yes\":\"123\"}" +
                 "}", new String(converter.convertToJson(avro, SCHEMA)));
     }
 
@@ -118,6 +118,51 @@ public class TestJsonDecoderOptionalFields {
                 "\"__timestamp\":null," +
                 "\"__metadata\":null" +
                 "}", new String(converter.convertToJson(avro, SCHEMA)));
+    }
+
+    static final Schema SCHEMA_2 = new Schema.Parser().parse("{\n" +
+            "  \"type\" : \"record\",\n" +
+            "  \"name\" : \"testSchema\",\n" +
+            "  \"namespace\" : \"org.avro\",\n" +
+            "  \"doc:\" : \"A basic schema for storing messages\",\n" +
+            "  \"fields\" : [ {\n" +
+            "    \"name\" : \"username\",\n" +
+            "    \"type\" : \"string\",\n" +
+            "    \"doc\" : \"Name of the user account\"\n" +
+            "  }, {\n" +
+            "    \"name\" : \"message\",\n" +
+            "    \"type\" : \"string\",\n" +
+            "    \"doc\" : \"The content of the user's message\"\n" +
+            "  }, {\n" +
+            "    \"name\" : \"__timestamp\",\n" +
+            "    \"type\" : [\"null\", \"long\"],\n" +
+            "    \"doc\" : \"Epoch time in milliseconds (UTC)\",\n" +
+            "    \"default\": null\n" +
+            "  }, {\n" +
+            "    \"name\": \"__metadata\",\n" +
+            "    \"type\": [\"null\"," +
+                 "{\"type\": \"record\", " +
+            "    \"name\" : \"testRecord\",\n" +
+            "      \"fields\" : [{\"name\" : \"username\",\"type\" : \"string\",\"doc\":\"Name of the user account\"\n}]" +
+                 "}]" +
+            "  }]\n" +
+            "}");
+
+    @Test
+    public void testAllFieldsProvided2() throws IOException {
+        // given
+        String json = "{" +
+                "\"username\":\"mike\"," +
+                "\"message\":\"hello\"," +
+                "\"__timestamp\":1234," +
+                "\"__metadata\":{\"username\":\"bar\"}" +
+                "}";
+
+        // when
+        byte[] avro = converter.convertToAvro(json.getBytes(), SCHEMA_2);
+
+        // then
+        assertEquals(json, new String(converter.convertToJson(avro, SCHEMA_2)));
     }
 
     class JsonConverter {
