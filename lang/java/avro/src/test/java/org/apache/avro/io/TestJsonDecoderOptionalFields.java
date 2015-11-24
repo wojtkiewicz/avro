@@ -120,7 +120,7 @@ public class TestJsonDecoderOptionalFields {
                 "}", new String(converter.convertToJson(avro, SCHEMA)));
     }
 
-    static final Schema SCHEMA_2 = new Schema.Parser().parse("{\n" +
+    static final Schema SCHEMA_RECORD = new Schema.Parser().parse("{\n" +
             "  \"type\" : \"record\",\n" +
             "  \"name\" : \"testSchema\",\n" +
             "  \"namespace\" : \"org.avro\",\n" +
@@ -149,7 +149,7 @@ public class TestJsonDecoderOptionalFields {
             "}");
 
     @Test
-    public void testAllFieldsProvided2() throws IOException {
+    public void testRecordSupport() throws IOException {
         // given
         String json = "{" +
                 "\"username\":\"mike\"," +
@@ -159,10 +159,10 @@ public class TestJsonDecoderOptionalFields {
                 "}";
 
         // when
-        byte[] avro = converter.convertToAvro(json.getBytes(), SCHEMA_2);
+        byte[] avro = converter.convertToAvro(json.getBytes(), SCHEMA_RECORD);
 
         // then
-        assertEquals(json, new String(converter.convertToJson(avro, SCHEMA_2)));
+        assertEquals(json, new String(converter.convertToJson(avro, SCHEMA_RECORD)));
     }
 
     class JsonConverter {
