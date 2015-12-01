@@ -120,6 +120,70 @@ public class TestJsonDecoderOptionalFields {
                 "}", new String(converter.convertToJson(avro, SCHEMA)));
     }
 
+    @Test
+    public void testOptionalRecordIsMissing() throws IOException {
+        // given
+        Schema schemaFirstFieldAsOptionalRecord = new Schema.Parser().parse(
+                "{\n" +
+                "  \"type\" : \"record\",\n" +
+                "  \"name\" : \"testSchema\",\n" +
+                "  \"namespace\" : \"org.avro\",\n" +
+                "  \"fields\": [\n" +
+                "  {\n" +
+                "    \"name\": \"user\",\n" +
+                "    \"type\": [\"null\"," +
+                "       {\"type\": \"record\", " +
+                "        \"name\" : \"testRecord\",\n" +
+                "        \"fields\" : [{\"name\" : \"username\",\"type\" : \"string\"}]}]" +
+                "  },{\n" +
+                "      \"name\": \"timestamp\",\n" +
+                "      \"type\": \"long\"\n" +
+                "  }]\n" +
+                "}");
+
+        String json = "{\"timestamp\": 1234}";
+
+        // when
+        byte[] avro = converter.convertToAvro(json.getBytes(), schemaFirstFieldAsOptionalRecord);
+
+        // then
+        assertEquals("{" +
+                "\"user\":null," +
+                "\"timestamp\":1234" +
+                "}", new String(converter.convertToJson(avro, schemaFirstFieldAsOptionalRecord)));
+    }
+
+    @Test
+    public void testFirstFieldAsOptionalMapIsMissing() throws IOException {
+        // given
+        Schema schemaFirstFieldOptionalMap = new Schema.Parser().parse(
+                "{\n" +
+                "  \"type\" : \"record\",\n" +
+                "  \"name\" : \"testSchema\",\n" +
+                "  \"namespace\" : \"org.avro\",\n" +
+                "  \"fields\": [\n" +
+                "  {\n" +
+                "      \"name\": \"__metadata\",\n" +
+                "      \"type\": [\"null\",{\"type\": \"map\", \"values\": \"string\"}],\n" +
+                "      \"default\": null\n" +
+                "  },{\n" +
+                "      \"name\": \"timestamp\",\n" +
+                "      \"type\": \"long\"\n" +
+                "  }]\n" +
+                "}");
+
+        String json = "{\"timestamp\": 1234}";
+
+        // when
+        byte[] avro = converter.convertToAvro(json.getBytes(), schemaFirstFieldOptionalMap);
+
+        // then
+        assertEquals("{" +
+                "\"__metadata\":null," +
+                "\"timestamp\":1234" +
+                "}", new String(converter.convertToJson(avro, schemaFirstFieldOptionalMap)));
+    }
+
     static final Schema SCHEMA_RECORD = new Schema.Parser().parse("{\n" +
             "  \"type\" : \"record\",\n" +
             "  \"name\" : \"testSchema\",\n" +
