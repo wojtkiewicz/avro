@@ -1,10 +1,12 @@
 package org.apache.avro.io;
 
 import org.apache.avro.Schema;
+import org.apache.avro.data.Json;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.generic.GenericRecordBuilder;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -130,6 +132,7 @@ public class TestJsonDecoderOptionalFields {
                 "  \"namespace\" : \"org.avro\",\n" +
                 "  \"fields\": [\n" +
                 "  {\n" +
+                        "    \"default\": null,\n" +
                 "    \"name\": \"user\",\n" +
                 "    \"type\": [\"null\"," +
                 "       {\"type\": \"record\", " +
@@ -229,10 +232,35 @@ public class TestJsonDecoderOptionalFields {
         assertEquals(json, new String(converter.convertToJson(avro, SCHEMA_RECORD)));
     }
 
+    static final Schema SCHEMA_ARRAY = new Schema.Parser().parse("{\n" +
+            "  \"type\" : \"record\",\n" +
+            "  \"name\" : \"testSchema\",\n" +
+            "  \"namespace\" : \"org.avro\",\n" +
+            "  \"doc:\" : \"A basic schema for storing messages\",\n" +
+            "  \"fields\" : [ {\n" +
+            "    \"name\": \"__metadata\",\n" +
+            "    \"type\": [\"null\",{\"type\": \"array\", \"items\": {\"type\":\"int\"}}],\n" +
+            "    \"default\": null\n" +
+            "  }]\n" +
+            "}");
+
+    @Test
+    public void testArraySupport() throws IOException {
+        // given
+        String json = "{\"__metadata\":[1,2,3]}";
+
+        // when
+        byte[] avro = converter.convertToAvro(json.getBytes(), SCHEMA_ARRAY);
+
+        // then
+        assertEquals(json, new String(converter.convertToJson(avro, SCHEMA_ARRAY)));
+    }
+
     class JsonConverter {
         public byte[] convertToAvro(byte[] data, Schema schema) throws IOException {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             BinaryEncoder encoder = EncoderFactory.get().binaryEncoder(outputStream, null);
+
             GenericDatumWriter<Object> writer = new GenericDatumWriter<Object>(schema);
             writer.write(readRecord(data, schema), encoder);
             encoder.flush();
@@ -240,9 +268,7 @@ public class TestJsonDecoderOptionalFields {
         }
 
         private GenericData.Record readRecord(byte[] data, Schema schema) throws IOException {
-            JsonDecoder decoder = DecoderFactory.get().jsonDecoder(schema, new ByteArrayInputStream(data));
-            DatumReader<GenericData.Record> reader = new GenericDatumReader<GenericData.Record>(schema);
-            return reader.read(null, decoder);
+            return new JsonDatumReader().read(data, schema);
         }
 
         public byte[] convertToJson(byte[] avro, Schema schema) throws IOException {
