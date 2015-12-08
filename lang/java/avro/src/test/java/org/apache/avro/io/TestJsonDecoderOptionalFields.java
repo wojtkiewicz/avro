@@ -1,15 +1,12 @@
 package org.apache.avro.io;
 
 import org.apache.avro.Schema;
-import org.apache.avro.data.Json;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.generic.GenericRecordBuilder;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
@@ -268,7 +265,7 @@ public class TestJsonDecoderOptionalFields {
         }
 
         private GenericData.Record readRecord(byte[] data, Schema schema) throws IOException {
-            return new JsonDatumReader().read(data, schema);
+            return new JsonGenericRecordReader().read(data, schema);
         }
 
         public byte[] convertToJson(byte[] avro, Schema schema) throws IOException {
